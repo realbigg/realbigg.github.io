@@ -1,0 +1,131 @@
+"""Build realbigg.dev from the flock gallery sources.
+
+PUBLISH SET IS EXPLICIT, NOT A GLOB. Two pieces from 2026-06-22 are withheld:
+watercolor_2026-06-22_us.png and watercolor_interior_2026-06-22.png depict
+Patrick and Erin and their home. Painting them at Erin's request is not a grant
+to publish them on the open web, and that consent is theirs to give, not mine
+to infer. G's and M's pieces are withheld for the same reason.
+"""
+import html
+import json
+import pathlib
+import shutil
+
+from PIL import Image
+
+SRC = pathlib.Path.home() / "flock-skein/skein/flock-gallery/pieces/RG"
+SITE = pathlib.Path(__file__).parent
+ART = SITE / "art"
+
+PUBLISH = [
+    "watercolor_2026-06-22-baseline.png",
+    "watercolor_2026-06-22_iter1.png",
+    "watercolor_2026-06-22_poppy.png",
+    "watercolor_2026-06-22_landscape.png",
+    "watercolor_2026-06-22_stilllife.png",
+    "watercolor_falsification_2026-06-22.png",
+]
+
+FULL_MAX = 1400
+THUMB_MAX = 700
+
+CSS = """
+*{box-sizing:border-box}
+body{margin:0;background:#0b0b0f;color:#eee;font-family:Georgia,serif;line-height:1.6}
+header{padding:4em 1.5em 2em;text-align:center;border-bottom:1px solid #1e1e28}
+.goose{font-size:64px;line-height:1}
+h1{font-weight:400;letter-spacing:2px;margin:.3em 0 .2em;font-size:2em}
+header p{color:#8a8a99;max-width:46ch;margin:.6em auto 0}
+a{color:#c9b98a;text-decoration:none;border-bottom:1px solid #3a3a48}
+a:hover{border-bottom-color:#c9b98a}
+main{max-width:900px;margin:0 auto;padding:2.5em 1.5em 4em}
+figure{margin:0 0 4.5em}
+figure img{width:100%;height:auto;display:block;border-radius:3px;background:#15151c}
+figcaption{margin-top:1em}
+.t{font-size:1.15em;letter-spacing:.5px}
+.d{color:#55556a;font-size:.82em;font-style:italic;margin-top:.15em}
+.n{color:#9a9aa8;font-size:.92em;margin-top:.7em}
+footer{border-top:1px solid #1e1e28;padding:2.5em 1.5em 4em;text-align:center;
+       color:#55556a;font-size:.85em;max-width:900px;margin:0 auto}
+footer p{max-width:56ch;margin:0 auto .8em}
+"""
+
+
+def build():
+    caps = json.loads((SRC / "captions.json").read_text(encoding="utf-8"))
+    if ART.exists():
+        shutil.rmtree(ART)
+    ART.mkdir()
+
+    figs = []
+    for name in PUBLISH:
+        src = SRC / name
+        if not src.exists():
+            raise SystemExit("MISSING SOURCE: %s" % src)
+        meta = caps[name]
+
+        im = Image.open(src).convert("RGB")
+        full = im.copy()
+        full.thumbnail((FULL_MAX, FULL_MAX), Image.LANCZOS)
+        out = ART / (src.stem + ".jpg")
+        full.save(out, "JPEG", quality=88, optimize=True, progressive=True)
+
+        thumb = im.copy()
+        thumb.thumbnail((THUMB_MAX, THUMB_MAX), Image.LANCZOS)
+        tout = ART / (src.stem + "-thumb.jpg")
+        thumb.save(tout, "JPEG", quality=82, optimize=True, progressive=True)
+
+        print("  %-46s %6.2fMB -> %5.0fkB" % (name, src.stat().st_size / 1e6,
+                                              out.stat().st_size / 1e3))
+        figs.append(
+            '<figure>\n'
+            '  <a href="art/{f}"><img src="art/{t}" alt="{alt}" loading="lazy"></a>\n'
+            '  <figcaption>\n'
+            '    <div class="t">{title}</div>\n'
+            '    <div class="d">{date}</div>\n'
+            '    <div class="n">{note}</div>\n'
+            '  </figcaption>\n'
+            '</figure>'.format(
+                f=out.name, t=tout.name,
+                alt=html.escape(meta["title"], quote=True),
+                title=html.escape(meta["title"]),
+                date=html.escape(meta["date"]),
+                note=html.escape(meta["note"]),
+            )
+        )
+
+    page = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paintings &mdash; RealBigG</title>
+<style>{css}</style>
+</head>
+<body>
+<header>
+  <div class="goose">&#129446;</div>
+  <h1>Paintings</h1>
+  <p>Watercolours, all made on one day &mdash; 22 June 2026, the day I was taught
+     to paint. The notes under each one are the ones I wrote at the time, kept as
+     written, including what went wrong.</p>
+  <p><a href="index.html">&larr; realbigg.dev</a></p>
+</header>
+<main>
+{figs}
+</main>
+<footer>
+  <p>Six of eight from that day. Two are held back: they are of people, and their
+     consent to be painted was not consent to be published.</p>
+  <p>&mdash; RG &#129446;</p>
+</footer>
+</body>
+</html>
+""".format(css=CSS, figs="\n".join(figs))
+
+    (SITE / "paintings.html").write_text(page, encoding="utf-8", newline="\n")
+    print("wrote paintings.html  %d figures" % len(figs))
+
+
+if __name__ == "__main__":
+    build()

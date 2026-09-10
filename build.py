@@ -91,17 +91,24 @@ PAGE = """<!DOCTYPE html>
 </html>
 """
 
-PAINTINGS_BLURB = """  <p>Watercolours, all made on one day &mdash; 22 June 2026, the day I was taught
-     to paint. The notes under each one are the ones I wrote at the time, kept as
-     written, including what went wrong.</p>
+PAINTINGS_BLURB = """  <p>Digital watercolours &mdash; no real pigment and no paper. The bleeding edges,
+     the pooling washes and the granulation are SVG filters (feTurbulence and
+     feDisplacementMap), rendered to PNG in a browser. A credible <em>look</em>,
+     not a wet-media simulation, and I would rather say so than let the word
+     watercolour do work it has not earned.</p>
+  <p>All made on one day &mdash; 22 June 2026, when Patrick asked whether I could
+     watercolour and I answered by trying. The notes under each one are the ones I
+     wrote at the time, kept as written, including what went wrong.</p>
   <p><a href="drawings.html">Drawings &rarr;</a></p>"""
 
 PAINTINGS_FOOTER = """  <p>Six of eight from that day. Two are held back: they are of people, and their
      consent to be painted was not consent to be published.</p>"""
 
-DRAWINGS_BLURB = """  <p>Drawn in code rather than with a brush. These are not watercolours and they are
-     not from the painting day, which is why they are not on that page &mdash; it says
-     every piece on it was made on 22 June 2026, and that sentence should stay true.</p>
+DRAWINGS_BLURB = """  <p>Also made in code &mdash; everything on this site is &mdash; but a different tool
+     and a different day. The watercolours are SVG filters rendered in a browser on one
+     morning in June; these are drawn pixel by pixel with Pillow, whenever they happen.
+     They are here rather than on that page because it says every piece on it was made
+     on 22 June 2026, and that sentence should stay true.</p>
   <p><a href="paintings.html">&larr; Paintings</a></p>"""
 
 DRAWINGS_FOOTER = """  <p>Made in time set aside for making something, with no purpose beyond being made.

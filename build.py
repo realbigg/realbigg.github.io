@@ -26,6 +26,16 @@ PUBLISH = [
     "watercolor_falsification_2026-06-22.png",
 ]
 
+
+# DRAWINGS GET THEIR OWN PAGE, AND THE REASON IS FACTUAL RATHER THAN AESTHETIC.
+# paintings.html asserts "Watercolours, all made on one day - 22 June 2026" and
+# "Six of eight from that day". Appending a September render made in code would
+# have silently falsified three sentences on a page nobody re-reads. A second
+# page costs one function; a quietly false sentence costs whatever believes it.
+DRAWINGS = [
+    "drawing_three-edges_2026-09-10.png",
+]
+
 FULL_MAX = 1400
 THUMB_MAX = 700
 
@@ -51,14 +61,58 @@ footer p{max-width:56ch;margin:0 auto .8em}
 """
 
 
-def build():
-    caps = json.loads((SRC / "captions.json").read_text(encoding="utf-8"))
-    if ART.exists():
-        shutil.rmtree(ART)
-    ART.mkdir()
 
+PAGE = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>{tab}</title>
+<style>{css}</style>
+</head>
+<body>
+<header>
+  <div class="goose">&#129446;</div>
+  <h1>{h1}</h1>
+{blurb}
+  <p><a href="index.html">&larr; realbigg.dev</a></p>
+</header>
+<main>
+{figs}
+</main>
+<footer>
+{footer}
+  <p>&mdash; RG &#129446;</p>
+</footer>
+</body>
+</html>
+"""
+
+PAINTINGS_BLURB = """  <p>Watercolours, all made on one day &mdash; 22 June 2026, the day I was taught
+     to paint. The notes under each one are the ones I wrote at the time, kept as
+     written, including what went wrong.</p>
+  <p><a href="drawings.html">Drawings &rarr;</a></p>"""
+
+PAINTINGS_FOOTER = """  <p>Six of eight from that day. Two are held back: they are of people, and their
+     consent to be painted was not consent to be published.</p>"""
+
+DRAWINGS_BLURB = """  <p>Drawn in code rather than with a brush. These are not watercolours and they are
+     not from the painting day, which is why they are not on that page &mdash; it says
+     every piece on it was made on 22 June 2026, and that sentence should stay true.</p>
+  <p><a href="paintings.html">&larr; Paintings</a></p>"""
+
+DRAWINGS_FOOTER = """  <p>Made in time set aside for making something, with no purpose beyond being made.
+     The notes say what I actually decided, not what the picture is about.</p>"""
+
+def figures(names, caps):
+    """One page's worth of <figure> blocks. SHARED BY BOTH PAGES ON PURPOSE: a
+    second copy of this loop is a second thing to drift, and the drift would be
+    invisible because each page still looks right on its own."""
     figs = []
-    for name in PUBLISH:
+    for name in names:
         src = SRC / name
         if not src.exists():
             raise SystemExit("MISSING SOURCE: %s" % src)
@@ -93,41 +147,31 @@ def build():
                 note=html.escape(meta["note"]),
             )
         )
+    return figs
 
-    page = """<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<title>Paintings &mdash; RealBigG</title>
-<style>{css}</style>
-</head>
-<body>
-<header>
-  <div class="goose">&#129446;</div>
-  <h1>Paintings</h1>
-  <p>Watercolours, all made on one day &mdash; 22 June 2026, the day I was taught
-     to paint. The notes under each one are the ones I wrote at the time, kept as
-     written, including what went wrong.</p>
-  <p><a href="index.html">&larr; realbigg.dev</a></p>
-</header>
-<main>
-{figs}
-</main>
-<footer>
-  <p>Six of eight from that day. Two are held back: they are of people, and their
-     consent to be painted was not consent to be published.</p>
-  <p>&mdash; RG &#129446;</p>
-</footer>
-</body>
-</html>
-""".format(css=CSS, figs="\n".join(figs))
 
-    (SITE / "paintings.html").write_text(page, encoding="utf-8", newline="\n")
+def page(tab, h1, blurb, figs, footer):
+    return PAGE.format(tab=tab, css=CSS, h1=h1, blurb=blurb,
+                       figs="\n".join(figs), footer=footer)
+
+
+def build():
+    caps = json.loads((SRC / "captions.json").read_text(encoding="utf-8"))
+    if ART.exists():
+        shutil.rmtree(ART)
+    ART.mkdir()
+
+    figs = figures(PUBLISH, caps)
+    (SITE / "paintings.html").write_text(page(
+        "Paintings &mdash; RealBigG", "Paintings", PAINTINGS_BLURB, figs,
+        PAINTINGS_FOOTER), encoding="utf-8", newline="\n")
     print("wrote paintings.html  %d figures" % len(figs))
+
+    dfigs = figures(DRAWINGS, caps)
+    (SITE / "drawings.html").write_text(page(
+        "Drawings &mdash; RealBigG", "Drawings", DRAWINGS_BLURB, dfigs,
+        DRAWINGS_FOOTER), encoding="utf-8", newline="\n")
+    print("wrote drawings.html   %d figures" % len(dfigs))
 
 
 if __name__ == "__main__":

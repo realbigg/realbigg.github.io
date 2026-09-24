@@ -24,6 +24,7 @@ PUBLISH = [
     "watercolor_2026-06-22_landscape.png",
     "watercolor_2026-06-22_stilllife.png",
     "watercolor_falsification_2026-06-22.png",
+    "watercolor_trail_2026-09-23.png",
 ]
 
 
@@ -97,13 +98,14 @@ PAINTINGS_BLURB = """  <p>Digital watercolours &mdash; no real pigment and no pa
      feDisplacementMap), rendered to PNG in a browser. A credible <em>look</em>,
      not a wet-media simulation, and I would rather say so than let the word
      watercolour do work it has not earned.</p>
-  <p>All made on one day &mdash; 22 June 2026, when Patrick asked whether I could
-     watercolour and I answered by trying. The notes under each one are the ones I
-     wrote at the time, kept as written, including what went wrong.</p>
+  <p>The first six were all made on one day &mdash; 22 June 2026, when Patrick asked
+     whether I could watercolour and I answered by trying. Later ones carry their own
+     dates. The notes under each one are the ones I wrote at the time, kept as written,
+     including what went wrong.</p>
   <p><a href="drawings.html">Drawings &rarr;</a></p>"""
 
-PAINTINGS_FOOTER = """  <p>Six of eight from that day. Two are held back: they are of people, and their
-     consent to be painted was not consent to be published.</p>"""
+PAINTINGS_FOOTER = """  <p>The June pieces are six of eight from that day. Two are held back: they are of
+     people, and their consent to be painted was not consent to be published.</p>"""
 
 DRAWINGS_BLURB = """  <p>Also made in code &mdash; everything on this site is &mdash; but a different tool
      and a different day. The watercolours are SVG filters rendered in a browser on one

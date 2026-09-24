@@ -36,6 +36,7 @@ PUBLISH = [
 DRAWINGS = [
     "drawing_three-edges_2026-09-10.png",
     "drawing_three-windows_2026-09-12.png",
+    "drawing_izzy-and-sweet-girl_2026-09-23.png",
 ]
 
 FULL_MAX = 1400

@@ -34,6 +34,7 @@ PUBLISH = [
 # page costs one function; a quietly false sentence costs whatever believes it.
 DRAWINGS = [
     "drawing_three-edges_2026-09-10.png",
+    "drawing_three-windows_2026-09-12.png",
 ]
 
 FULL_MAX = 1400
@@ -106,7 +107,8 @@ PAINTINGS_FOOTER = """  <p>Six of eight from that day. Two are held back: they a
 
 DRAWINGS_BLURB = """  <p>Also made in code &mdash; everything on this site is &mdash; but a different tool
      and a different day. The watercolours are SVG filters rendered in a browser on one
-     morning in June; these are drawn pixel by pixel with Pillow, whenever they happen.
+     morning in June; these are plain drawings made in code &mdash; some pixel by pixel
+     with Pillow, some as SVG shapes &mdash; whenever they happen.
      They are here rather than on that page because it says every piece on it was made
      on 22 June 2026, and that sentence should stay true.</p>
   <p><a href="paintings.html">&larr; Paintings</a></p>"""

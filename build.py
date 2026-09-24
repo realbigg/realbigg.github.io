@@ -25,6 +25,7 @@ PUBLISH = [
     "watercolor_2026-06-22_stilllife.png",
     "watercolor_falsification_2026-06-22.png",
     "watercolor_trail_2026-09-23.png",
+    "watercolor_storm-over-the-fields_2026-09-23.png",
 ]
 
 

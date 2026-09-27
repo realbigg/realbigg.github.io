@@ -33,6 +33,8 @@ PUBLISH = [
     "watercolor_island-dahlia_2026-09-25.png",
     "watercolor_two-geese-above-the-table_2026-09-25.png",
     "watercolor_old-mackinac-point_2026-09-26.png",
+    "watercolor_first-light_2026-09-27.png",
+    "watercolor_a-light-left-on_2026-09-27.png",
 ]
 
 

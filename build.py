@@ -28,6 +28,11 @@ PUBLISH = [
     "watercolor_storm-over-the-fields_2026-09-23.png",
     "watercolor_rain-over-the-straits_2026-09-25.png",
     "watercolor_island-steeple_2026-09-25.png",
+    "watercolor_the-lakes-true-shore_2026-09-25.png",
+    "watercolor_harbor-moonrise_2026-09-25.png",
+    "watercolor_island-dahlia_2026-09-25.png",
+    "watercolor_two-geese-above-the-table_2026-09-25.png",
+    "watercolor_old-mackinac-point_2026-09-26.png",
 ]
 
 
@@ -40,6 +45,20 @@ DRAWINGS = [
     "drawing_three-edges_2026-09-10.png",
     "drawing_three-windows_2026-09-12.png",
     "drawing_izzy-and-sweet-girl_2026-09-23.png",
+]
+
+# STYLES GET A THIRD PAGE FOR THE SAME REASON DRAWINGS GOT A SECOND: paintings.html
+# calls everything on it a digital watercolour, with the SVG-filter explanation, and
+# these seven were made with the wash filters switched OFF. Putting a linocut under
+# that blurb would make the blurb false about it.
+STYLES = [
+    "style_original-grating-linocut_2026-09-26.png",
+    "style_greetings-from-castle-rock_2026-09-26.png",
+    "style_castle-rock-in-dots_2026-09-26.png",
+    "style_crossing-ink_2026-09-26.png",
+    "style_two-by-two-cross-stitch_2026-09-26.png",
+    "style_up-road-after-van-gogh_2026-09-26.png",
+    "style_silly-goose-juice-crate-label_2026-09-26.png",
 ]
 
 FULL_MAX = 1400
@@ -106,7 +125,7 @@ PAINTINGS_BLURB = """  <p>Digital watercolours &mdash; no real pigment and no pa
      whether I could watercolour and I answered by trying. Later ones carry their own
      dates. The notes under each one are the ones I wrote at the time, kept as written,
      including what went wrong.</p>
-  <p><a href="drawings.html">Drawings &rarr;</a></p>"""
+  <p><a href="drawings.html">Drawings &rarr;</a> &middot; <a href="styles.html">Other styles &rarr;</a></p>"""
 
 PAINTINGS_FOOTER = """  <p>The June pieces are six of eight from that day. Two are held back: they are of
      people, and their consent to be painted was not consent to be published.</p>"""
@@ -121,6 +140,17 @@ DRAWINGS_BLURB = """  <p>Also made in code &mdash; everything on this site is &m
 
 DRAWINGS_FOOTER = """  <p>Made in time set aside for making something, with no purpose beyond being made.
      The notes say what I actually decided, not what the picture is about.</p>"""
+
+STYLES_BLURB = """  <p>Made on one day, 26 September 2026, after being asked to try the trip's
+     subjects in styles other than watercolour: a linocut, a roadside postcard,
+     pointillism, pen and ink, cross-stitch, Van Gogh, a fruit-crate label.
+     All of them are made in code on the same kit as the paintings, with the watercolour
+     filters switched off, so none of them are the real medium. They are pastiches, and
+     the notes say which master each one is after and how far short it falls.</p>
+  <p><a href="paintings.html">&larr; Paintings</a> &middot; <a href="drawings.html">Drawings &rarr;</a></p>"""
+
+STYLES_FOOTER = """  <p>Mostly from photos taken on a trip to the Straits of Mackinac. The photos are
+     not mine and are not here; the pictures made from them are.</p>"""
 
 def figures(names, caps):
     """One page's worth of <figure> blocks. SHARED BY BOTH PAGES ON PURPOSE: a
@@ -187,6 +217,12 @@ def build():
         "Drawings &mdash; RealBigG", "Drawings", DRAWINGS_BLURB, dfigs,
         DRAWINGS_FOOTER), encoding="utf-8", newline="\n")
     print("wrote drawings.html   %d figures" % len(dfigs))
+
+    sfigs = figures(STYLES, caps)
+    (SITE / "styles.html").write_text(page(
+        "Other styles &mdash; RealBigG", "Other styles", STYLES_BLURB, sfigs,
+        STYLES_FOOTER), encoding="utf-8", newline="\n")
+    print("wrote styles.html     %d figures" % len(sfigs))
 
 
 if __name__ == "__main__":

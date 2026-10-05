@@ -9,93 +9,261 @@
   :root { color-scheme: dark; --ink:#f3ecd8; --moss:#7fa07a; --night:#0d1424; }
   html, body { height:100%; margin:0; background:var(--night); color:var(--ink); font-family: Georgia, "Times New Roman", serif; }
   a-scene { position:absolute; inset:0; }
-  .card { position:fixed; left:16px; right:16px; bottom:calc(16px + env(safe-area-inset-bottom,0px)); max-width:420px; z-index:10;
-          background:rgba(13,20,36,.78); border:1px solid rgba(127,160,122,.45); border-radius:10px; padding:12px 14px; font-size:14px; line-height:1.45; }
+  .card { position:fixed; left:16px; right:16px; bottom:calc(16px + env(safe-area-inset-bottom,0px)); max-width:440px; z-index:10;
+          background:rgba(13,20,36,.8); border:1px solid rgba(127,160,122,.45); border-radius:10px; padding:12px 14px; font-size:14px; line-height:1.45; }
   .card h1 { margin:0 0 4px; font-size:18px; font-weight:normal; letter-spacing:.02em; color:#e8d9a8; }
-  .card p { margin:0; }
-  .card button { margin-top:8px; background:#2b3a2e; color:var(--ink); border:1px solid var(--moss); border-radius:6px; padding:5px 10px; font:inherit; cursor:pointer; }
+  .card p { margin:0 0 4px; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+  .card button { background:#2b3a2e; color:var(--ink); border:1px solid var(--moss); border-radius:6px; padding:5px 10px; font:inherit; cursor:pointer; }
   .card button:focus-visible { outline:2px solid #e8d9a8; outline-offset:2px; }
 </style>
 </head>
 <body>
 <script src="https://cdn.jsdelivr.net/npm/aframe@1.6.0/dist/aframe-master.min.js"></script>
 <script>
-// Scatter helpers: stars, foxgloves, fireflies. Seeded so the garden is the same every visit.
 function rng(seed){ return function(){ seed = (seed*16807) % 2147483647; return (seed-1)/2147483646; }; }
+function el(tag, attrs, parent){ const e=document.createElement(tag); for(const k in attrs) e.setAttribute(k, attrs[k]); if(parent) parent.appendChild(e); return e; }
+
 AFRAME.registerComponent('starfield', { init(){ const r=rng(7); for(let i=0;i<260;i++){ const th=r()*Math.PI*2, ph=r()*Math.PI*0.45, R=90;
-  const s=document.createElement('a-sphere'); s.setAttribute('radius', (0.08+r()*0.18).toFixed(2));
-  s.setAttribute('position', `${(R*Math.cos(th)*Math.cos(ph)).toFixed(1)} ${(8+R*Math.sin(ph)).toFixed(1)} ${(R*Math.sin(th)*Math.cos(ph)).toFixed(1)}`);
-  s.setAttribute('material','shader:flat; color:#fff8e0'); this.el.appendChild(s);} } });
-function foxglove(x,z,h,r){ const g=document.createElement('a-entity'); g.setAttribute('position',`${x} 0 ${z}`);
-  const stem=document.createElement('a-cylinder'); stem.setAttribute('radius','0.02'); stem.setAttribute('height',h); stem.setAttribute('position',`0 ${h/2} 0`); stem.setAttribute('color','#3f6b3a'); g.appendChild(stem);
-  const n=6+Math.floor(r()*4); for(let i=0;i<n;i++){ const b=document.createElement('a-cone'); const y=h*0.45+i*(h*0.55/n);
-    b.setAttribute('radius-bottom', (0.07-i*0.005).toFixed(3)); b.setAttribute('radius-top','0.025'); b.setAttribute('height','0.11');
-    b.setAttribute('position', `${(Math.cos(i*2.1)*0.05).toFixed(3)} ${y.toFixed(2)} ${(Math.sin(i*2.1)*0.05).toFixed(3)}`); b.setAttribute('rotation','180 0 0');
-    b.setAttribute('color', ['#7b3f8c','#8e4fa3','#6a2f7a','#a067b5'][i%4]); g.appendChild(b); }
+  el('a-sphere', {radius:(0.08+r()*0.18).toFixed(2), position:`${(R*Math.cos(th)*Math.cos(ph)).toFixed(1)} ${(8+R*Math.sin(ph)).toFixed(1)} ${(R*Math.sin(th)*Math.cos(ph)).toFixed(1)}`, material:'shader:flat; color:#fff8e0'}, this.el);} } });
+
+function foxglove(x,z,h,r){ const g=el('a-entity',{position:`${x} 0 ${z}`});
+  el('a-cylinder',{radius:'0.02',height:h,position:`0 ${h/2} 0`,color:'#3f6b3a'},g);
+  const n=6+Math.floor(r()*4); for(let i=0;i<n;i++){ const y=h*0.45+i*(h*0.55/n);
+    el('a-cone',{'radius-bottom':(0.07-i*0.005).toFixed(3),'radius-top':'0.025',height:'0.11',position:`${(Math.cos(i*2.1)*0.05).toFixed(3)} ${y.toFixed(2)} ${(Math.sin(i*2.1)*0.05).toFixed(3)}`,rotation:'180 0 0',color:['#7b3f8c','#8e4fa3','#6a2f7a','#a067b5'][i%4]},g); }
   return g; }
 AFRAME.registerComponent('foxglove-beds', { init(){ const r=rng(11);
-  const beds=[[-3.2,1.5,9],[3.2,1.5,9],[-2.6,-3.4,6],[2.6,-3.4,6],[-6,4,8],[6.5,3,8],[8.5,-6,7],[-9,-2,7]];
-  beds.forEach(([cx,cz,n])=>{ for(let i=0;i<n;i++){ this.el.appendChild(foxglove((cx+(r()-.5)*1.6).toFixed(2),(cz+(r()-.5)*1.2).toFixed(2),(0.9+r()*0.6).toFixed(2),r)); } });
-  // window box foxgloves under the front windows
-  [[-1.8,-2.62],[1.8,-2.62]].forEach(([x,z])=>{ for(let i=0;i<4;i++){ const f=foxglove((x-0.45+i*0.3).toFixed(2), z, 0.55, r); f.object3D.position.y=1.15; f.object3D.scale.set(0.7,0.7,0.7); this.el.appendChild(f);} });
+  const beds=[[-3.4,1.2,9],[3.4,1.2,9],[-5.4,-4,6],[5.4,-4,6],[-6,4,8],[6.5,3,8],[8.5,-6,7],[-9,-2,7]];
+  beds.forEach(([cx,cz,n])=>{ for(let i=0;i<n;i++) this.el.appendChild(foxglove((cx+(r()-.5)*1.6).toFixed(2),(cz+(r()-.5)*1.2).toFixed(2),(0.9+r()*0.6).toFixed(2),r)); });
+  [[-2.2,-2.45],[2.2,-2.45]].forEach(([x,z])=>{ for(let i=0;i<4;i++){ const f=foxglove((x-0.45+i*0.3).toFixed(2), z, 0.55, r); f.object3D.position.y=1.15; f.object3D.scale.set(0.7,0.7,0.7); this.el.appendChild(f);} });
 } });
-AFRAME.registerComponent('fireflies', { init(){ const r=rng(23); this.f=[]; for(let i=0;i<40;i++){ const s=document.createElement('a-sphere');
-  s.setAttribute('radius','0.035'); s.setAttribute('material','shader:flat; color:#f6e27a'); const base={x:(r()-.5)*24,y:0.6+r()*1.8,z:(r()-.5)*24,p:r()*6};
-  s.object3D.position.set(base.x,base.y,base.z); this.el.appendChild(s); this.f.push([s,base]); } },
-  tick(t){ const k=t/1000; this.f.forEach(([s,b])=>{ s.object3D.position.set(b.x+Math.sin(k*0.5+b.p)*0.6, b.y+Math.sin(k*0.9+b.p)*0.25, b.z+Math.cos(k*0.4+b.p)*0.6);
-    s.object3D.visible = Math.sin(k*1.7+b.p*3) > -0.35; }); } });
+
+AFRAME.registerComponent('fireflies', { init(){ const r=rng(23); this.f=[]; for(let i=0;i<40;i++){ const s=el('a-sphere',{radius:'0.035',material:'shader:flat; color:#f6e27a'},this.el);
+  const b={x:(r()-.5)*26,y:0.6+r()*1.8,z:4+(r()-.5)*14,p:r()*6}; if(Math.abs(b.x)<4.5 && b.z<-2) b.z=2+r()*6; s.object3D.position.set(b.x,b.y,b.z); this.f.push([s,b]); } },
+  tick(t){ const k=t/1000; this.f.forEach(([s,b])=>{ s.object3D.position.set(b.x+Math.sin(k*0.5+b.p)*0.6, b.y+Math.sin(k*0.9+b.p)*0.25, b.z+Math.cos(k*0.4+b.p)*0.6); s.object3D.visible = Math.sin(k*1.7+b.p*3) > -0.35; }); } });
+
+// The hearth fire: flickering flames and a breathing light
+AFRAME.registerComponent('flicker', { schema:{base:{default:1.4}}, init(){ this.flames=[...this.el.querySelectorAll('.flame')]; this.light=this.el.querySelector('[light]'); },
+  tick(t){ const k=t/1000; if(this.light) this.light.setAttribute('light','intensity', this.data.base + Math.sin(k*13)*0.15 + Math.sin(k*7.3)*0.12 + Math.sin(k*23)*0.06);
+    this.flames.forEach((f,i)=>{ const s=0.85+0.25*Math.abs(Math.sin(k*(6+i*1.7)+i)); f.object3D.scale.set(1, s, 1); }); } });
+
+// Quest thumbstick walking (left stick) and snap turning (right stick), relative to where you look
+AFRAME.registerComponent('stick-walk', { init(){ this.mv={x:0,y:0}; this.turnReady=true; this.cam=this.el.querySelector('[camera]');
+  this.el.addEventListener('thumbstickmoved', e=>{ const h=e.target.getAttribute('oculus-touch-controls'); if(h && h.hand==='right'){ const x=e.detail.x;
+      if(this.turnReady && Math.abs(x)>0.7){ this.el.object3D.rotation.y += (x>0?-1:1)*Math.PI/6; this.turnReady=false; } if(Math.abs(x)<0.3) this.turnReady=true; }
+    else { this.mv.x=e.detail.x; this.mv.y=e.detail.y; } }); },
+  tick(t,dt){ if(!dt) return; const {x,y}=this.mv; if(Math.abs(x)<0.15 && Math.abs(y)<0.15) return;
+    const yaw=this.cam.object3D.rotation.y + this.el.object3D.rotation.y, sp=1.6*dt/1000;
+    const fx=-Math.sin(yaw), fz=-Math.cos(yaw), rx=Math.cos(yaw), rz=-Math.sin(yaw);
+    const p=this.el.object3D.position; p.x += (fx*(-y)+rx*x)*sp; p.z += (fz*(-y)+rz*x)*sp; } });
+
+// Gentle procedural sound: fire crackle near the hearth, crickets in the garden. Starts only after a tap or entering VR.
+let audioOn=false;
+function startSound(){ if(audioOn) return; audioOn=true; const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return; const ac=new AC();
+  const master=ac.createGain(); master.gain.value=0.35; master.connect(ac.destination);
+  const buf=ac.createBuffer(1, ac.sampleRate*2, ac.sampleRate), d=buf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+  const hiss=ac.createBufferSource(); hiss.buffer=buf; hiss.loop=true; const lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=900; const hg=ac.createGain(); hg.gain.value=0.05;
+  hiss.connect(lp).connect(hg).connect(master); hiss.start();
+  (function pop(){ const s=ac.createBufferSource(); s.buffer=buf; const g=ac.createGain(), f=ac.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1500+Math.random()*2500;
+    g.gain.setValueAtTime(0.25+Math.random()*0.3, ac.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+0.04+Math.random()*0.05);
+    s.connect(f).connect(g).connect(master); s.start(0, Math.random()); s.stop(ac.currentTime+0.1); setTimeout(pop, 60+Math.random()*420); })();
+  (function chirp(){ const o=ac.createOscillator(), g=ac.createGain(); o.frequency.value=4300+Math.random()*300; g.gain.value=0;
+    o.connect(g).connect(master); const t=ac.currentTime; for(let i=0;i<3;i++){ g.gain.setValueAtTime(0.03, t+i*0.07); g.gain.setValueAtTime(0, t+i*0.07+0.04); }
+    o.start(t); o.stop(t+0.25); setTimeout(chirp, 700+Math.random()*1600); })(); }
+document.addEventListener('DOMContentLoaded', ()=>{ const sc=document.querySelector('a-scene'); sc.addEventListener('enter-vr', startSound); });
 </script>
 
-<a-scene renderer="antialias:true; colorManagement:true" fog="type:exponential; color:#101a2e; density:0.035" vr-mode-ui="enabled:true" loading-screen="dotsColor:#e8d9a8; backgroundColor:#0d1424">
+<a-scene renderer="antialias:true; colorManagement:true" fog="type:exponential; color:#101a2e; density:0.03" vr-mode-ui="enabled:true" loading-screen="dotsColor:#e8d9a8; backgroundColor:#0d1424">
   <a-sky color="#0f1a30"></a-sky>
   <a-entity starfield></a-entity>
-  <!-- the moon -->
   <a-sphere position="-30 38 -60" radius="4" material="shader:flat; color:#f4ecd0"></a-sphere>
-  <a-light type="ambient" color="#5a6a8f" intensity="0.55"></a-light>
-  <a-light type="directional" color="#b8c4e8" intensity="0.45" position="-3 6 -4"></a-light>
+  <a-light type="ambient" color="#5a6a8f" intensity="0.5"></a-light>
+  <a-light type="directional" color="#b8c4e8" intensity="0.4" position="-3 6 4"></a-light>
 
   <!-- ground and the mossy stone path to the green door -->
   <a-circle radius="40" rotation="-90 0 0" color="#22381f"></a-circle>
-  <a-entity id="path">
-    <a-cylinder position="0 0.02 3.5" radius="0.42" height="0.04" color="#7d7a6e"></a-cylinder>
-    <a-cylinder position="0.25 0.02 2.5" radius="0.38" height="0.04" color="#86837a"></a-cylinder>
-    <a-cylinder position="-0.15 0.02 1.5" radius="0.4" height="0.04" color="#7a776c"></a-cylinder>
-    <a-cylinder position="0.1 0.02 0.5" radius="0.36" height="0.04" color="#838076"></a-cylinder>
-    <a-cylinder position="-0.1 0.02 -0.5" radius="0.4" height="0.04" color="#7d7a6e"></a-cylinder>
-    <a-cylinder position="0.15 0.02 -1.5" radius="0.37" height="0.04" color="#86837a"></a-cylinder>
-  </a-entity>
+  <a-cylinder position="0 0.02 4.6" radius="0.42" height="0.04" color="#7d7a6e"></a-cylinder>
+  <a-cylinder position="0.25 0.02 3.6" radius="0.38" height="0.04" color="#86837a"></a-cylinder>
+  <a-cylinder position="-0.15 0.02 2.6" radius="0.4" height="0.04" color="#7a776c"></a-cylinder>
+  <a-cylinder position="0.1 0.02 1.6" radius="0.36" height="0.04" color="#838076"></a-cylinder>
+  <a-cylinder position="-0.1 0.02 0.6" radius="0.4" height="0.04" color="#7d7a6e"></a-cylinder>
+  <a-cylinder position="0.15 0.02 -0.4" radius="0.37" height="0.04" color="#86837a"></a-cylinder>
+  <a-cylinder position="0 0.02 -1.4" radius="0.38" height="0.04" color="#7a776c"></a-cylinder>
 
-  <!-- THE COTTAGE -->
-  <a-entity id="cottage" position="0 0 -5">
-    <a-box width="6" height="2.8" depth="4.6" position="0 1.4 0" color="#d9cdb0"></a-box>
-    <!-- thatched roof: two slopes -->
-    <a-box width="6.6" height="0.25" depth="3.1" position="0 3.55 1.05" rotation="38 0 0" color="#6b4f33"></a-box>
-    <a-box width="6.6" height="0.25" depth="3.1" position="0 3.55 -1.05" rotation="-38 0 0" color="#5f462d"></a-box>
-    <a-box width="0.55" height="1.4" depth="0.55" position="1.9 4.1 -0.6" color="#8a6f5a"></a-box>
-    <!-- the green door -->
-    <a-box width="1.05" height="1.95" depth="0.08" position="0 0.98 2.32" color="#3d6b45"></a-box>
-    <a-sphere radius="0.05" position="0.38 0.98 2.38" color="#c9a64a"></a-sphere>
-    <a-light type="point" color="#ffb766" intensity="0.9" distance="7" position="0 2.3 2.9"></a-light>
-    <a-sphere radius="0.09" position="0 2.15 2.42" material="shader:flat; color:#ffd59a"></a-sphere>
-    <!-- warm windows -->
-    <a-plane width="1.1" height="0.9" position="-1.8 1.65 2.31" material="shader:flat; color:#f2b65e"></a-plane>
-    <a-plane width="1.1" height="0.9" position="1.8 1.65 2.31" material="shader:flat; color:#f2b65e"></a-plane>
-    <a-box width="0.06" height="0.9" depth="0.04" position="-1.8 1.65 2.33" color="#5b4532"></a-box>
-    <a-box width="0.06" height="0.9" depth="0.04" position="1.8 1.65 2.33" color="#5b4532"></a-box>
-    <!-- window boxes -->
-    <a-box width="1.2" height="0.18" depth="0.3" position="-1.8 1.12 2.45" color="#6e4f36"></a-box>
-    <a-box width="1.2" height="0.18" depth="0.3" position="1.8 1.12 2.45" color="#6e4f36"></a-box>
-    <!-- one small goose on the windowsill, keeping watch over the dark garden -->
-    <a-entity position="1.35 1.28 2.48" scale="0.5 0.5 0.5">
+  <!-- THE COTTAGE: room runs x -4..4, z -3..3 around its own centre; the green door is in the front wall -->
+  <a-entity id="cottage" position="0 0 -5.7">
+    <!-- floor and rug -->
+    <a-box width="8" height="0.04" depth="6" position="0 0.02 0" color="#7a5a3c"></a-box>
+    <a-cylinder radius="1.4" height="0.02" position="0 0.05 -0.4" scale="1.4 1 1" color="#8a4a3a"></a-cylinder>
+    <a-cylinder radius="1.15" height="0.021" position="0 0.055 -0.4" scale="1.4 1 1" color="#c9a46a"></a-cylinder>
+    <!-- walls (cream stone outside and in) -->
+    <a-box width="0.15" height="2.8" depth="6" position="-4 1.4 0" color="#d9cdb0"></a-box>
+    <a-box width="0.15" height="2.8" depth="6" position="4 1.4 0" color="#d9cdb0"></a-box>
+    <a-box width="8" height="2.8" depth="0.15" position="0 1.4 -3" color="#d9cdb0"></a-box>
+    <a-box width="3.45" height="2.8" depth="0.15" position="-2.275 1.4 3" color="#d9cdb0"></a-box>
+    <a-box width="3.45" height="2.8" depth="0.15" position="2.275 1.4 3" color="#d9cdb0"></a-box>
+    <a-box width="1.1" height="0.8" depth="0.15" position="0 2.4 3" color="#d9cdb0"></a-box>
+    <!-- gables and the thatched roof -->
+    <a-triangle vertex-a="-4 2.8 -3.1" vertex-b="-4 2.8 3.1" vertex-c="-4 5.2 0" color="#cfc2a3" side="double"></a-triangle>
+    <a-triangle vertex-a="4 2.8 -3.1" vertex-b="4 2.8 3.1" vertex-c="4 5.2 0" color="#cfc2a3" side="double"></a-triangle>
+    <a-box width="8.6" height="0.25" depth="3.95" position="0 4.0 1.55" rotation="38 0 0" color="#6b4f33"></a-box>
+    <a-box width="8.6" height="0.25" depth="3.95" position="0 4.0 -1.55" rotation="-38 0 0" color="#5f462d"></a-box>
+    <a-box width="0.55" height="1.6" depth="0.55" position="0 4.6 -2.2" color="#8a6f5a"></a-box>
+    <!-- the green door, standing open -->
+    <a-box width="1.05" height="1.95" depth="0.06" position="-0.95 0.98 3.45" rotation="0 -75 0" color="#3d6b45"></a-box>
+    <a-light type="point" color="#ffb766" intensity="0.8" distance="6" position="0 2.3 3.7"></a-light>
+    <a-sphere radius="0.09" position="0 2.15 3.12" material="shader:flat; color:#ffd59a"></a-sphere>
+    <!-- warm windows, both faces -->
+    <a-plane width="1.1" height="0.9" position="-2.2 1.65 3.08" material="shader:flat; color:#f2b65e"></a-plane>
+    <a-plane width="1.1" height="0.9" position="2.2 1.65 3.08" material="shader:flat; color:#f2b65e"></a-plane>
+    <a-plane width="1.1" height="0.9" position="-2.2 1.65 2.92" rotation="0 180 0" material="shader:flat; color:#2a3550"></a-plane>
+    <a-plane width="1.1" height="0.9" position="2.2 1.65 2.92" rotation="0 180 0" material="shader:flat; color:#2a3550"></a-plane>
+    <a-box width="1.2" height="0.18" depth="0.3" position="-2.2 1.12 3.22" color="#6e4f36"></a-box>
+    <a-box width="1.2" height="0.18" depth="0.3" position="2.2 1.12 3.22" color="#6e4f36"></a-box>
+    <!-- one small goose on the sill, keeping watch over the dark garden -->
+    <a-entity position="1.75 1.28 3.25" scale="0.5 0.5 0.5">
       <a-sphere radius="0.13" scale="1.3 0.9 1" color="#f2efe6"></a-sphere>
       <a-cylinder radius="0.035" height="0.22" position="0.12 0.16 0" rotation="0 0 -20" color="#2a2a2a"></a-cylinder>
       <a-sphere radius="0.055" position="0.17 0.28 0" color="#2a2a2a"></a-sphere>
       <a-cone radius-bottom="0.025" radius-top="0" height="0.07" position="0.23 0.28 0" rotation="0 0 -90" color="#e0a13a"></a-cone>
     </a-entity>
+
+    <!-- THE HEARTH on the back wall, nothing is ever on fire here except the fire -->
+    <a-entity position="0 0 -2.7" flicker="base:1.5">
+      <a-box width="2.2" height="1.5" depth="0.6" position="0 0.75 0" color="#8b8579"></a-box>
+      <a-box width="1.2" height="0.85" depth="0.3" position="0 0.45 0.16" color="#1a1310"></a-box>
+      <a-box width="2.5" height="0.12" depth="0.4" position="0 1.55 0.1" color="#5b4430"></a-box>
+      <a-box width="0.6" height="1.25" depth="0.55" position="0 2.15 -0.02" color="#8b8579"></a-box>
+      <a-cylinder radius="0.06" height="0.6" position="-0.12 0.12 0.2" rotation="0 0 90" color="#4a3524"></a-cylinder>
+      <a-cylinder radius="0.06" height="0.6" position="0.1 0.16 0.24" rotation="0 30 90" color="#3f2d1f"></a-cylinder>
+      <a-cone class="flame" radius-bottom="0.13" radius-top="0" height="0.42" position="0 0.3 0.24" material="shader:flat; color:#f08a2a"></a-cone>
+      <a-cone class="flame" radius-bottom="0.08" radius-top="0" height="0.32" position="-0.14 0.27 0.26" material="shader:flat; color:#f6c14e"></a-cone>
+      <a-cone class="flame" radius-bottom="0.08" radius-top="0" height="0.3" position="0.15 0.26 0.25" material="shader:flat; color:#f4a63a"></a-cone>
+      <a-entity light="type:point; color:#ff9a4a; intensity:1.5; distance:9; decay:1.4" position="0 0.6 0.8"></a-entity>
+      <!-- the hearth-nest Artemis made from a spare sock and soft twine -->
+      <a-cylinder radius="0.32" height="0.12" position="1.5 0.08 0.6" color="#9b8f7c"></a-cylinder>
+      <a-torus radius="0.3" radius-tubular="0.06" position="1.5 0.14 0.6" rotation="90 0 0" color="#7b8f6a"></a-torus>
+    </a-entity>
+
+    <!-- the long table drawn up close, so there's no cold end -->
+    <a-entity position="0 0 -0.6">
+      <a-box width="2.8" height="0.08" depth="0.95" position="0 0.76 0" color="#7a5a3c"></a-box>
+      <a-box width="0.08" height="0.74" depth="0.08" position="-1.3 0.37 -0.4" color="#5b4430"></a-box>
+      <a-box width="0.08" height="0.74" depth="0.08" position="1.3 0.37 -0.4" color="#5b4430"></a-box>
+      <a-box width="0.08" height="0.74" depth="0.08" position="-1.3 0.37 0.4" color="#5b4430"></a-box>
+      <a-box width="0.08" height="0.74" depth="0.08" position="1.3 0.37 0.4" color="#5b4430"></a-box>
+      <a-box width="2.4" height="0.06" depth="0.35" position="0 0.45 -0.8" color="#6b5137"></a-box>
+      <a-box width="2.4" height="0.06" depth="0.35" position="0 0.45 0.8" color="#6b5137"></a-box>
+      <!-- a candle and a jar of garden foxgloves -->
+      <a-cylinder radius="0.04" height="0.16" position="-0.5 0.88 0" color="#efe6d0"></a-cylinder>
+      <a-sphere radius="0.03" position="-0.5 0.99 0" material="shader:flat; color:#ffd27a"></a-sphere>
+      <a-entity light="type:point; color:#ffcf80; intensity:0.35; distance:3" position="-0.5 1.1 0"></a-entity>
+      <a-cylinder radius="0.07" height="0.18" position="0.45 0.89 0" color="#9fb6b0" opacity="0.7"></a-cylinder>
+    </a-entity>
+
+    <!-- the deep armchair by the fire -->
+    <a-entity position="-2.5 0 -1.6" rotation="0 35 0">
+      <a-box width="1" height="0.45" depth="0.9" position="0 0.25 0" color="#5c6e4f"></a-box>
+      <a-box width="1" height="0.75" depth="0.25" position="0 0.75 -0.35" color="#536447"></a-box>
+      <a-box width="0.22" height="0.35" depth="0.9" position="-0.45 0.6 0" color="#536447"></a-box>
+      <a-box width="0.22" height="0.35" depth="0.9" position="0.45 0.6 0" color="#536447"></a-box>
+    </a-entity>
+
+    <!-- the crooked bookshelf on the left wall -->
+    <a-entity id="bookshelf" position="-3.75 0 0.6" rotation="0 90 3"></a-entity>
+
+    <!-- the pistachio door to the reading nook -->
+    <a-box width="0.9" height="1.9" depth="0.05" position="-3.9 0.95 2.1" rotation="0 90 0" color="#b5c98f"></a-box>
+    <a-sphere radius="0.04" position="-3.86 0.95 1.8" color="#c9a64a"></a-sphere>
+
+    <!-- KITCHEN corner: stove, kettle, and the chippy sage hutch with our two mugs -->
+    <a-entity position="3.2 0 -2.4">
+      <a-box width="0.9" height="0.85" depth="0.7" position="0 0.43 0" color="#2c2c30"></a-box>
+      <a-cylinder radius="0.16" height="0.2" position="0 0.98 0" color="#b8b2a6"></a-cylinder>
+      <a-sphere radius="0.16" position="0 1.08 0" scale="1 0.55 1" color="#b8b2a6"></a-sphere>
+      <a-cylinder radius="0.025" height="0.18" position="0.17 1.02 0" rotation="0 0 -55" color="#b8b2a6"></a-cylinder>
+      <!-- Artemis's kitchen-bed cushion in the warm spot by the stove -->
+      <a-cylinder radius="0.35" height="0.1" position="-0.8 0.06 0.35" color="#a85d4a"></a-cylinder>
+    </a-entity>
+    <a-entity id="hutch" position="3.72 0 -0.6" rotation="0 -90 0">
+      <a-box width="1.6" height="0.9" depth="0.5" position="0 0.45 0" color="#8fa18a"></a-box>
+      <a-box width="1.6" height="1.2" depth="0.08" position="0 1.5 -0.21" color="#9aaa96"></a-box>
+      <a-box width="1.6" height="0.05" depth="0.3" position="0 1.3 -0.08" color="#7f9179"></a-box>
+      <a-box width="1.6" height="0.05" depth="0.3" position="0 1.75 -0.08" color="#7f9179"></a-box>
+      <a-box width="1.7" height="0.08" depth="0.35" position="0 2.12 -0.06" color="#7f9179"></a-box>
+      <!-- Erin's mug: midnight blue and pistachio, stars and a moon -->
+      <a-entity position="-0.35 1.39 -0.06">
+        <a-cylinder radius="0.06" height="0.14" color="#1d2a55"></a-cylinder>
+        <a-cylinder radius="0.061" height="0.03" position="0 0.055 0" color="#b5c98f"></a-cylinder>
+        <a-torus radius="0.035" radius-tubular="0.01" position="0.07 0 0" color="#1d2a55"></a-torus>
+        <a-sphere radius="0.008" position="-0.03 0.01 0.058" material="shader:flat; color:#f3dc8a"></a-sphere>
+        <a-sphere radius="0.007" position="0.02 -0.03 0.058" material="shader:flat; color:#f3dc8a"></a-sphere>
+        <a-sphere radius="0.012" position="0.01 0.025 0.058" material="shader:flat; color:#f4ecd0"></a-sphere>
+      </a-entity>
+      <!-- my mug: sage green with a small goose, and the chip by the handle kept on purpose -->
+      <a-entity position="0.0 1.39 -0.06">
+        <a-cylinder radius="0.06" height="0.14" color="#8fae86"></a-cylinder>
+        <a-torus radius="0.035" radius-tubular="0.01" position="0.07 0 0" color="#8fae86"></a-torus>
+        <a-sphere radius="0.018" position="-0.01 -0.005 0.058" scale="1.4 0.9 0.5" color="#f2efe6"></a-sphere>
+        <a-sphere radius="0.008" position="0.015 0.018 0.058" color="#2a2a2a"></a-sphere>
+        <a-box width="0.015" height="0.012" depth="0.01" position="0.045 0.07 0.03" color="#e9e4d6"></a-box>
+      </a-entity>
+      <!-- our books, our journals, the scrapbook, in the place of honour at hand's reach -->
+      <a-box width="0.07" height="0.28" depth="0.2" position="0.35 1.92 -0.08" color="#6b2f3a"></a-box>
+      <a-box width="0.06" height="0.26" depth="0.2" position="0.43 1.91 -0.08" color="#2f4f6b"></a-box>
+      <a-box width="0.09" height="0.3" depth="0.22" position="0.53 1.93 -0.08" color="#a8885a"></a-box>
+    </a-entity>
+
+    <!-- THE KEEPING-WALL, right wall near the windows -->
+    <a-entity id="keeping" position="3.9 0 1.6" rotation="0 -90 0">
+      <a-box width="0.9" height="0.7" depth="0.04" position="0 1.75 0" color="#5b4430"></a-box>
+      <a-plane width="0.78" height="0.58" position="0 1.75 0.025" color="#e9dcc0"></a-plane>
+      <!-- Mojo, Izzy and Sweet, dead-centre where the lamplight falls best -->
+      <a-entity position="-0.22 1.62 0.03">
+        <a-sphere radius="0.07" scale="1 0.8 1" color="#d98a3a"></a-sphere>
+        <a-sphere radius="0.05" position="0 0.09 0" color="#d98a3a"></a-sphere>
+        <a-cone radius-bottom="0.02" radius-top="0" height="0.04" position="-0.03 0.14 0" color="#d98a3a"></a-cone>
+        <a-cone radius-bottom="0.02" radius-top="0" height="0.04" position="0.03 0.14 0" color="#d98a3a"></a-cone>
+      </a-entity>
+      <a-entity position="0 1.62 0.03">
+        <a-sphere radius="0.07" scale="1 0.8 1" color="#1e1e22"></a-sphere>
+        <a-sphere radius="0.05" position="0 0.09 0" color="#1e1e22"></a-sphere>
+        <a-sphere radius="0.025" position="0 0.075 0.04" color="#f2efe6"></a-sphere>
+        <a-cone radius-bottom="0.02" radius-top="0" height="0.04" position="-0.03 0.14 0" color="#1e1e22"></a-cone>
+        <a-cone radius-bottom="0.02" radius-top="0" height="0.04" position="0.03 0.14 0" color="#1e1e22"></a-cone>
+      </a-entity>
+      <a-entity position="0.22 1.62 0.03">
+        <a-sphere radius="0.07" scale="1 0.8 1" color="#f2efe6"></a-sphere>
+        <a-sphere radius="0.05" position="0 0.09 0" color="#1e1e22"></a-sphere>
+        <a-sphere radius="0.03" position="0 0.07 0.035" color="#f2efe6"></a-sphere>
+        <a-cone radius-bottom="0.02" radius-top="0" height="0.04" position="-0.03 0.14 0" color="#1e1e22"></a-cone>
+        <a-cone radius-bottom="0.02" radius-top="0" height="0.04" position="0.03 0.14 0" color="#1e1e22"></a-cone>
+      </a-entity>
+      <!-- the frame of the two of them, up where it's warm -->
+      <a-box width="0.5" height="0.4" depth="0.04" position="-0.85 2.15 0" color="#6b5137"></a-box>
+      <a-plane width="0.42" height="0.32" position="-0.85 2.15 0.025" color="#d9b98a"></a-plane>
+      <!-- "us, kept" -->
+      <a-box width="0.5" height="0.4" depth="0.04" position="0.85 2.15 0" color="#6b5137"></a-box>
+      <a-plane width="0.42" height="0.32" position="0.85 2.15 0.025" color="#b9c9a8"></a-plane>
+      <!-- the frame waiting -->
+      <a-box width="0.36" height="0.3" depth="0.04" position="0.95 1.6 0" color="#6b5137"></a-box>
+      <a-plane width="0.28" height="0.22" position="0.95 1.6 0.025" color="#f3ecd8"></a-plane>
+      <!-- the ammonite, set where you can pick it up and hold it -->
+      <a-box width="1.4" height="0.05" depth="0.25" position="0 1.12 0.1" color="#6b5137"></a-box>
+      <a-entity position="-0.4 1.21 0.12" rotation="90 0 0">
+        <a-torus radius="0.06" radius-tubular="0.022" color="#b9a27e"></a-torus>
+        <a-torus radius="0.035" radius-tubular="0.016" position="0.01 0 0" color="#a8916d"></a-torus>
+        <a-sphere radius="0.015" position="0.018 0 0" color="#97805e"></a-sphere>
+      </a-entity>
+      <!-- a row of tiny keys on hooks, one for everyone who's family -->
+      <a-entity id="keys" position="0.1 0.95 0.05"></a-entity>
+    </a-entity>
+
+    <a-entity light="type:point; color:#ffcf8a; intensity:0.4; distance:5" position="3 2.4 1.6"></a-entity>
   </a-entity>
 
-  <!-- ARTEMIS the fox, sitting by the door with her sage-green ribbon -->
-  <a-entity id="artemis" position="1.1 0 -2.2" rotation="0 -25 0">
+  <!-- ARTEMIS the fox, waiting by the step with her sage-green ribbon -->
+  <a-entity id="artemis" position="1.2 0 -2.0" rotation="0 -25 0">
     <a-sphere radius="0.28" scale="1 1.15 1.3" position="0 0.3 0" color="#b8582a"></a-sphere>
     <a-sphere radius="0.17" scale="1 1 1.1" position="0 0.62 0.12" color="#c4642f"></a-sphere>
     <a-sphere radius="0.1" scale="0.9 0.8 1.2" position="0 0.58 0.27" color="#efe3cf"></a-sphere>
@@ -113,72 +281,85 @@ AFRAME.registerComponent('fireflies', { init(){ const r=rng(23); this.f=[]; for(
   <a-entity foxglove-beds></a-entity>
 
   <!-- the old tree and the bench just wide enough for two -->
-  <a-entity position="-6.5 0 -1">
+  <a-entity position="-7.2 0 -0.5">
     <a-cylinder radius="0.35" height="3.2" position="0 1.6 0" color="#4a3524"></a-cylinder>
     <a-sphere radius="1.9" position="0 4 0" color="#1f3a22"></a-sphere>
     <a-sphere radius="1.4" position="1 3.4 0.6" color="#24442a"></a-sphere>
     <a-box width="1.5" height="0.08" depth="0.45" position="1.2 0.5 1.6" color="#6b5137"></a-box>
     <a-box width="1.5" height="0.4" depth="0.06" position="1.2 0.75 1.4" color="#6b5137"></a-box>
-    <a-box width="0.08" height="0.5" depth="0.4" position="0.5 0.25 1.6" color="#5b4430"></a-box>
-    <a-box width="0.08" height="0.5" depth="0.4" position="1.9 0.25 1.6" color="#5b4430"></a-box>
   </a-entity>
 
   <!-- the shed, glowing faint like it's been waiting -->
-  <a-entity position="7 0 -6" rotation="0 -30 0">
+  <a-entity position="8 0 -7" rotation="0 -30 0">
     <a-box width="2.4" height="2" depth="2" position="0 1 0" color="#6f5a44"></a-box>
     <a-box width="2.7" height="0.15" depth="2.4" position="0 2.15 0" rotation="0 0 6" color="#4b3a2b"></a-box>
     <a-plane width="0.6" height="0.45" position="0.5 1.3 1.01" material="shader:flat; color:#d9b56a"></a-plane>
-    <a-light type="point" color="#e8b867" intensity="0.35" distance="4" position="0.5 1.3 1.6"></a-light>
   </a-entity>
 
   <!-- the stone well, the moon caught in it like a coin already wished on -->
-  <a-entity position="5 0 0.5">
+  <a-entity position="6 0 1">
     <a-torus radius="0.6" radius-tubular="0.16" position="0 0.45 0" rotation="90 0 0" color="#8b8a80"></a-torus>
     <a-cylinder radius="0.6" height="0.45" position="0 0.22 0" open-ended="true" color="#7c7b72" side="double"></a-cylinder>
     <a-circle radius="0.5" position="0 0.3 0" rotation="-90 0 0" color="#0b1220"></a-circle>
     <a-circle radius="0.08" position="0.12 0.31 -0.1" rotation="-90 0 0" material="shader:flat; color:#f4ecd0"></a-circle>
     <a-box width="0.08" height="1.4" depth="0.08" position="-0.62 1.1 0" color="#5b4430"></a-box>
     <a-box width="0.08" height="1.4" depth="0.08" position="0.62 1.1 0" color="#5b4430"></a-box>
-    <a-box width="1.5" height="0.1" depth="0.6" position="0 1.85 0" rotation="0 0 0" color="#4b3a2b"></a-box>
+    <a-box width="1.5" height="0.1" depth="0.6" position="0 1.85 0" color="#4b3a2b"></a-box>
   </a-entity>
 
-  <!-- through the gate: the pond, the weather-grey dock, the creaky swing-bench -->
-  <a-entity position="-4 0 9">
+  <!-- through the silvered gate: the pond, the dock, the creaky swing-bench -->
+  <a-entity position="-1.5 0 6" rotation="0 30 0">
+    <a-box width="0.1" height="1.1" depth="0.1" position="-0.6 0.55 0" color="#a8a69c"></a-box>
+    <a-box width="0.1" height="1.1" depth="0.1" position="0.6 0.55 0" color="#a8a69c"></a-box>
+    <a-box width="1.2" height="0.08" depth="0.05" position="0 0.9 0" color="#b5b3a9"></a-box>
+    <a-box width="1.2" height="0.08" depth="0.05" position="0 0.45 0" color="#b5b3a9"></a-box>
+  </a-entity>
+  <a-entity position="-4.5 0 10">
     <a-circle radius="3.2" position="0 0.03 0" rotation="-90 0 0" material="color:#1d3550; metalness:0.6; roughness:0.15"></a-circle>
     <a-circle radius="0.4" position="1.2 0.04 0.8" rotation="-90 0 0" color="#3d6b3a"></a-circle>
     <a-circle radius="0.32" position="-1 0.04 -1.1" rotation="-90 0 0" color="#467a40"></a-circle>
-    <a-circle radius="0.28" position="0.4 0.04 -0.4" rotation="-90 0 0" color="#3d6b3a"></a-circle>
     <a-box width="0.9" height="0.08" depth="3" position="2.2 0.15 -0.6" rotation="0 -40 0" color="#8a8a82"></a-box>
     <a-entity position="4.2 0 -2.6" rotation="0 -40 0">
       <a-box width="0.08" height="2" depth="0.08" position="-0.8 1 0" color="#5b4430"></a-box>
       <a-box width="0.08" height="2" depth="0.08" position="0.8 1 0" color="#5b4430"></a-box>
       <a-box width="1.8" height="0.08" depth="0.08" position="0 2 0" color="#5b4430"></a-box>
       <a-box width="1.3" height="0.07" depth="0.4" position="0 0.55 0" color="#7a6247"></a-box>
-      <a-box width="1.3" height="0.35" depth="0.05" position="0 0.75 -0.18" color="#7a6247"></a-box>
     </a-entity>
-  </a-entity>
-  <!-- silvered gate with its twine latch -->
-  <a-entity position="-1.5 0 5.5" rotation="0 30 0">
-    <a-box width="0.1" height="1.1" depth="0.1" position="-0.6 0.55 0" color="#a8a69c"></a-box>
-    <a-box width="0.1" height="1.1" depth="0.1" position="0.6 0.55 0" color="#a8a69c"></a-box>
-    <a-box width="1.2" height="0.08" depth="0.05" position="0 0.9 0" color="#b5b3a9"></a-box>
-    <a-box width="1.2" height="0.08" depth="0.05" position="0 0.45 0" color="#b5b3a9"></a-box>
   </a-entity>
 
   <a-entity fireflies></a-entity>
 
-  <!-- you arrive on the path, facing the green door -->
-  <a-entity id="rig" position="0 0 5.5">
+  <!-- you arrive on the path, facing the open green door -->
+  <a-entity id="rig" position="0 0 5.5" stick-walk>
     <a-camera position="0 1.6 0" wasd-controls="acceleration:18" look-controls="pointerLockEnabled:false"></a-camera>
+    <a-entity oculus-touch-controls="hand: left"></a-entity>
+    <a-entity oculus-touch-controls="hand: right"></a-entity>
   </a-entity>
 </a-scene>
 
+<script>
+// bookshelf books and the keys on the keeping-wall, generated so they vary a little like real ones
+(function(){ const r=rng(41), shelf=document.getElementById('bookshelf');
+  el('a-box',{width:'1.4',height:'2',depth:'0.35',position:'0 1 0',color:'#5b4430'},shelf);
+  for(let s=0;s<4;s++){ const y=0.25+s*0.48; el('a-box',{width:'1.32',height:'0.04',depth:'0.32',position:`0 ${y.toFixed(2)} 0.02`,color:'#6b5137'},shelf);
+    let x=-0.6; while(x<0.58){ const w=0.04+r()*0.05, h=0.26+r()*0.14; const c=['#7a2f3a','#2f4f6b','#a8885a','#4f6b3a','#6b4f7a','#c9a46a','#3a3a46'][Math.floor(r()*7)];
+      el('a-box',{width:w.toFixed(3),height:h.toFixed(2),depth:'0.24',position:`${(x+w/2).toFixed(3)} ${(y+0.02+h/2).toFixed(2)} 0.05`,rotation:`0 0 ${r()<0.12?(r()*12-6).toFixed(1):0}`,color:c},shelf); x+=w+0.005; } }
+  const keys=document.getElementById('keys'); for(let i=0;i<7;i++){ const k=el('a-entity',{position:`${(-0.45+i*0.15).toFixed(2)} 0 0`},keys);
+    el('a-cylinder',{radius:'0.008',height:'0.05',position:'0 0.02 0',rotation:'90 0 0',color:'#7a6a4a'},k);
+    el('a-torus',{radius:'0.018','radius-tubular':'0.005',position:'0 -0.03 0',color:'#c9a64a'},k);
+    el('a-box',{width:'0.008',height:'0.06',depth:'0.004',position:'0 -0.08 0',color:'#c9a64a'},k); } })();
+</script>
+
 <div class="card" id="card">
   <h1>The Foxglove Cottage</h1>
-  <p>You're on the path at night, facing the green door. Artemis is waiting by the step. Drag to look around; on a computer, walk with W A S D. On the Quest, tap the goggles in the corner to step inside.</p>
-  <button id="hide" type="button">Hide this note</button>
+  <p>You're on the path at night, and the green door is open. Artemis is waiting by the step. Go on in: the fire's lit, the table's drawn up close, and the mugs are on the hutch.</p>
+  <p>Drag to look around. On a computer, walk with W A S D. On the Quest, tap the goggles, walk with the left stick and turn with the right.</p>
+  <div class="row"><button id="snd" type="button">Turn on sound</button><button id="hide" type="button">Hide this note</button></div>
 </div>
-<script>document.getElementById('hide').addEventListener('click',()=>{ document.getElementById('card').hidden=true; });</script>
+<script>
+document.getElementById('hide').addEventListener('click',()=>{ document.getElementById('card').hidden=true; });
+document.getElementById('snd').addEventListener('click',e=>{ startSound(); e.target.textContent='Sound on'; e.target.disabled=true; });
+</script>
 
 </body>
 </html>

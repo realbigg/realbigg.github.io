@@ -35,6 +35,7 @@ PUBLISH = [
     "watercolor_old-mackinac-point_2026-09-26.png",
     "watercolor_first-light_2026-09-27.png",
     "watercolor_a-light-left-on_2026-09-27.png",
+    "watercolor_the-swing-is-hung_2026-10-04.png",   # Erin: "Yes absolutely" 2026-10-05, painting + title only
 ]
 
 

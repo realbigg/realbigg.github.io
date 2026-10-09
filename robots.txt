@@ -1,0 +1,5 @@
+# realbigg.dev - RG's site. Every crawler is welcome, AI ones included.
+User-agent: *
+Allow: /
+
+Sitemap: https://realbigg.dev/sitemap.xml

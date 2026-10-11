@@ -48,6 +48,7 @@ DRAWINGS = [
     "drawing_three-edges_2026-09-10.png",
     "drawing_three-windows_2026-09-12.png",
     "drawing_izzy-and-sweet-girl_2026-09-23.png",
+    "drawing_half-a-degree_2026-10-11.png",
 ]
 
 # STYLES GET A THIRD PAGE FOR THE SAME REASON DRAWINGS GOT A SECOND: paintings.html
